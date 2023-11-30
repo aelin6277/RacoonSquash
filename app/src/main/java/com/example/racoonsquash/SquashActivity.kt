@@ -1,11 +1,19 @@
 package com.example.racoonsquash
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.example.racoonsquash.databinding.ActivitySquashBinding
 
 class SquashActivity : AppCompatActivity() {
+    lateinit var binding: ActivitySquashBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_squash)
+        binding = ActivitySquashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val gameView = SquashGameView(this)
+        val container = binding.root
+        container.addView(gameView)
+
     }
 }
