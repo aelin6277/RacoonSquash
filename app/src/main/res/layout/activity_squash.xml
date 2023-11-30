@@ -4,16 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SquashActivity">
+    tools:context=".PongActivity">
 
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="123dp"
-        android:layout_marginTop="141dp"
-        android:text="hello squash!"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

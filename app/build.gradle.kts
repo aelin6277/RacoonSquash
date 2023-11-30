@@ -8,19 +8,19 @@ android {
     compileSdk = 34
 
 
-    buildFeatures {
-        viewBinding = true
-    }
-
     defaultConfig {
         applicationId = "com.example.racoonsquash"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 26
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    buildFeatures{
+        viewBinding = true
+    }
+
 
 
 
