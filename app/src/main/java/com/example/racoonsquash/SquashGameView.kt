@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.graphics.Paint
+import android.graphics.Rect
+import android.icu.text.Transliterator
 import android.view.MotionEvent
 
 class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
@@ -13,10 +15,11 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     private var running = false
     lateinit var canvas: Canvas
     lateinit var ball1: Ball
+    lateinit var posX: Transliterator.Position
+    lateinit var posY: Transliterator.Position
 
-
+    var bounds = Rect() //for att kunna studsa m vaggarna
     var mHolder: SurfaceHolder? = holder
-    //var holder: SurfaceHolder? = getHolder()
 
     init {
         if (mHolder != null) {
@@ -26,10 +29,13 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     }
 
     private fun setup() {
-        ball1 = Ball(this.context)
-        ball1.posX = 100f
-        ball1.posY = 100f
-        ball1.paint.color = Color.RED
+        ball1 = Ball(this.context, 100f, 100f, 30f, 7f, 7f, Color.RED)
+
+//    private fun setup() {
+//        ball1 = Ball(this.context)
+//        ball1.posX = 100f
+//        ball1.posY = 100f
+//        ball1.paint.color = Color.RED
     }
 
     fun start() {
@@ -75,11 +81,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     //dessa startar och stoppar min thread:
     override fun surfaceCreated(holder: SurfaceHolder) {
-        start()
+       // start()
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-
+        bounds = Rect(0, 0, width, height)
+        start()
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -92,6 +99,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         while (running) {
             update()
             draw()
+            ball1.checkBounds(bounds)
         }
     }
 

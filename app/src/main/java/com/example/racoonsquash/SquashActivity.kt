@@ -11,13 +11,9 @@ class SquashActivity : AppCompatActivity() {
         binding = ActivitySquashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        binding.surfaceView.holder.addCallback(GameView(this))
-//        binding.surfaceView.setOnTouchListener(this)
         val gameView = SquashGameView(this)
         val container = binding.root
         container.addView(gameView)
-
-//hade kunnat satta gameview i set content view istallet for rad21-23
 
     }
 }
