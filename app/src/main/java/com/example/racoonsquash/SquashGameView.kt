@@ -6,9 +6,12 @@ import android.graphics.Color
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.icu.text.Transliterator
 import android.view.MotionEvent
+import android.widget.TextView
 
 class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     private var thread: Thread? = null
@@ -17,6 +20,14 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     lateinit var ball1: Ball
     lateinit var posX: Transliterator.Position
     lateinit var posY: Transliterator.Position
+    private var lineColor: Paint
+    private var textPaint: Paint
+    private var score: Int = 0;
+
+    //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
+    // Dessa blir gränser för spel-plan
+    // Verkar kunna använda PathMeasure-klassen för att detektera intersections/collisions
+    private var gameBoundaryPath: Path? = null
 
     var bounds = Rect() //for att kunna studsa m vaggarna
     var mHolder: SurfaceHolder? = holder
@@ -24,6 +35,20 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     init {
         if (mHolder != null) {
             mHolder?.addCallback(this)
+        }
+
+        // Score-text-attribut
+        textPaint = Paint().apply {
+            color = Color.GREEN
+            alpha = 200
+            textSize = 60.0F
+            typeface = Typeface.create("serif-monospace", Typeface.BOLD)
+        }
+        // Enbart för att synliggöra gränserna
+        lineColor = Paint().apply {
+            color = Color.MAGENTA
+            style = Paint.Style.STROKE
+            strokeWidth = 10f
         }
         setup()
     }
@@ -57,6 +82,10 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     fun update() {
         ball1.update()
 
+        // Räknar bara när boll rör långsidan just nu
+        if (ball1.posX >= width - ball1.size) {
+            updateScore()
+        }
     }
 
     //med denna kod kan jag rora pa boll2 som star stilla annars
@@ -67,21 +96,19 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
         return true
         // return super.onTouchEvent(event)
-
     }
 
-
-    fun draw() {
-        canvas = holder!!.lockCanvas()
-        canvas.drawColor(Color.BLUE)
-        ball1.draw(canvas)
-
-        holder!!.unlockCanvasAndPost(canvas)
-    }
+//    fun draw() {
+//        canvas = holder!!.lockCanvas()
+//        canvas.drawColor(Color.BLUE)
+//
+//
+//        holder!!.unlockCanvasAndPost(canvas)
+//    }
 
     //dessa startar och stoppar min thread:
     override fun surfaceCreated(holder: SurfaceHolder) {
-       // start()
+        // start()
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -98,9 +125,36 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     override fun run() {
         while (running) {
             update()
-            draw()
+            drawGameBounds(holder)
+            gameBoundaryPath = createBoundaryPath(width, height)
             ball1.checkBounds(bounds)
         }
     }
+    fun drawGameBounds(holder: SurfaceHolder) {
+        val canvas: Canvas? = holder.lockCanvas()
+        canvas?.drawColor(Color.BLACK)
 
+        gameBoundaryPath?.let {
+            canvas?.drawPath(it, lineColor)
+        }
+
+        // Placera text
+        canvas?.drawText("Score: $score", canvas.width.toFloat() - 400, 0f + 100, textPaint)
+
+        ball1.draw(canvas)
+        holder.unlockCanvasAndPost(canvas)
+    }
+
+    private fun createBoundaryPath(width: Int, height: Int): Path {
+        val path = Path()
+        path.moveTo(0f, 0f)
+        path.lineTo(width.toFloat(), 0f)
+        path.lineTo(width.toFloat(), height.toFloat())
+        path.lineTo(0f, height.toFloat())
+        return path
+    }
+    private fun updateScore(): Int {
+        score++
+        return score
+    }
 }
