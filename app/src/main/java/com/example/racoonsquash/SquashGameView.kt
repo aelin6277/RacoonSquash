@@ -8,8 +8,10 @@ import android.view.SurfaceView
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.icu.text.Transliterator
 import android.view.MotionEvent
+import android.widget.TextView
 
 class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     private var thread: Thread? = null
@@ -19,6 +21,8 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     lateinit var posX: Transliterator.Position
     lateinit var posY: Transliterator.Position
     private var lineColor: Paint
+    private var textPaint: Paint
+    private var score: Int = 0;
 
     //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
     // Dessa blir gränser för spel-plan
@@ -33,6 +37,13 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
             mHolder?.addCallback(this)
         }
 
+        // Score-text-attribut
+        textPaint = Paint().apply {
+            color = Color.GREEN
+            alpha = 200
+            textSize = 60.0F
+            typeface = Typeface.create("serif-monospace", Typeface.BOLD)
+        }
         // Enbart för att synliggöra gränserna
         lineColor = Paint().apply {
             color = Color.MAGENTA
@@ -51,6 +62,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 //        ball1.posY = 100f
 //        ball1.paint.color = Color.RED
     }
+
     fun start() {
         running = true
         thread =
@@ -70,6 +82,10 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     fun update() {
         ball1.update()
 
+        // Räknar bara när boll rör långsidan just nu
+        if (ball1.posX >= width - ball1.size) {
+            updateScore()
+        }
     }
 
     //med denna kod kan jag rora pa boll2 som star stilla annars
@@ -121,6 +137,10 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         gameBoundaryPath?.let {
             canvas?.drawPath(it, lineColor)
         }
+
+        // Placera text
+        canvas?.drawText("Score: $score", canvas.width.toFloat() - 400, 0f + 100, textPaint)
+
         ball1.draw(canvas)
         holder.unlockCanvasAndPost(canvas)
     }
@@ -132,5 +152,9 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         path.lineTo(width.toFloat(), height.toFloat())
         path.lineTo(0f, height.toFloat())
         return path
+    }
+    private fun updateScore(): Int {
+        score++
+        return score
     }
 }
