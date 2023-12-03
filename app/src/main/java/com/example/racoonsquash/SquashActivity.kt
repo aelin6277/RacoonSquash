@@ -1,19 +1,34 @@
 package com.example.racoonsquash
 
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.racoonsquash.databinding.ActivitySquashBinding
 
 class SquashActivity : AppCompatActivity() {
     lateinit var binding: ActivitySquashBinding
+    lateinit var squashPad: SquashPad
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySquashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        val surfaceHolder = binding.surfaceView.holder
         val gameView = SquashGameView(this)
         val container = binding.root
         container.addView(gameView)
 
+
+//        fun setup() {
+//
+//            squashPad   = SquashPad(this,0f,0f,25f,0f,0f, Color.GREEN)
+//
+//        }
+
+
+        }
     }
-}
+

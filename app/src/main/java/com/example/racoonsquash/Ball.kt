@@ -54,7 +54,7 @@ open class Ball(
 
     }
 
-    fun draw(canvas: Canvas?) {
+    open fun draw(canvas: Canvas?) {
         canvas?.drawCircle(posX, posY, size, paint)
     }
 
