@@ -17,9 +17,7 @@ open class Ball(
     var speedY: Float,
     var color: Int
 ) {
-
     var paint = Paint()
-
 
     init {
         paint.color = color
@@ -27,11 +25,9 @@ open class Ball(
 
     fun checkBounds(bounds: Rect) {
         // Kolla vänster och höger vägg
-        if (posX - size < bounds.left || posX + size > bounds.right) {
+        if (posX + size > bounds.right) {
             speedX *= -1
-            if (posX - size < bounds.left) {
-                posX = bounds.left + size
-            } else if (posX + size > bounds.right) {
+           if (posX + size > bounds.right) {
                 posX = bounds.right - size
             }
         }
