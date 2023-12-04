@@ -32,9 +32,9 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
     // Dessa blir gränser för spel-plan
     // Verkar kunna använda PathMeasure-klassen för att detektera intersections/collisions
-    private var gameBoundaryPath: Path? = null
+    private var gameBoundaryPath = Path()
 
-    var bounds = Rect() //for att kunna studsa m vaggarna
+   // var bounds = Rect() //for att kunna studsa m vaggarna
     var mHolder: SurfaceHolder? = holder
 
     init {
@@ -60,7 +60,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     private fun setup() {
         ball1 = Ball(this.context, 100f, 100f, 30f, 7f, 7f, Color.RED)
         val drawablePaddle=resources.getDrawable(R.drawable.player_pad,null)
-        squashPad = SquashPad(this.context, 145f,100f, 0f, 0f,0f,Color.GREEN)
+        squashPad = SquashPad(this.context, 145f,100f, 100f, 0f,0f,Color.GREEN)
     }
 
 
@@ -82,10 +82,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     fun update() {
         ball1.update()
+        drawGameBounds(holder)
         // Räknar bara när boll rör långsidan just nu
         if (ball1.posX >= width - ball1.size) {
             updateScore()
         }
+
     }
 
     //med denna kod kan jag rora pa boll2 som star stilla annars
@@ -108,11 +110,14 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     //dessa startar och stoppar min thread:
     override fun surfaceCreated(holder: SurfaceHolder) {
-        // start()
+
+
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        bounds = Rect(0, 0, width, height)
+
+        gameBoundaryPath = createBoundaryPath()
+        //bounds = Rect(0, 0, width, height)
         start()
     }
 
@@ -125,10 +130,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     override fun run() {
         while (running) {
             update()
-            drawGameBounds(holder)
-            gameBoundaryPath = createBoundaryPath(width, height)
-            ball1.checkBounds(bounds)
+            if(ball1.checkBounds(ball1.posX, ball1.posY, ball1.size, gameBoundaryPath)) {
+                println("HEJ")
+            }
+
         }
+
     }
 
     fun drawGameBounds(holder: SurfaceHolder) {
@@ -147,7 +154,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         holder.unlockCanvasAndPost(canvas)
     }
 
-    private fun createBoundaryPath(width: Int, height: Int): Path {
+    private fun createBoundaryPath(): Path {
         val path = Path()
         path.moveTo(0f, 0f)
         path.lineTo(width.toFloat(), 0f)
