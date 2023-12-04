@@ -16,9 +16,23 @@ class SquashPad(
     size: Float,
     speedX: Float,
     speedY: Float,
-    color: Int
+    color: Int,
+    val width: Float,
+    val height:Float
 ) : Ball(context, posX, posY, size, speedX, speedY, color) {
 
+
+    var left: Float = posX - size
+        private set
+
+    var right: Float = posX + size
+        private set
+
+    var top: Float = posY - size
+        private set
+
+    var bottom: Float = posY + size
+        private set
     var drawable: Drawable? = null
 
     init {
