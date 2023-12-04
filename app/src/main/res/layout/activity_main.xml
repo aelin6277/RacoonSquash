@@ -25,6 +25,7 @@
         android:layout_height="wrap_content"
         android:text="Tjenare hoppsan här är lite text som finns o existerar och är där och så"
         android:textSize="14sp"
+        android:gravity="center"
         app:layout_constraintBottom_toTopOf="@+id/et_playername"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

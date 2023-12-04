@@ -11,18 +11,23 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.icu.text.Transliterator
 import android.view.MotionEvent
-import android.widget.TextView
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     private var thread: Thread? = null
     private var running = false
     lateinit var canvas: Canvas
     lateinit var ball1: Ball
+    lateinit var squashPad: SquashPad
     lateinit var posX: Transliterator.Position
     lateinit var posY: Transliterator.Position
     private var lineColor: Paint
     private var textPaint: Paint
     private var score: Int = 0;
+
+
 
     //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
     // Dessa blir gränser för spel-plan
@@ -52,16 +57,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         }
         setup()
     }
-
     private fun setup() {
         ball1 = Ball(this.context, 100f, 100f, 30f, 7f, 7f, Color.RED)
-
-//    private fun setup() {
-//        ball1 = Ball(this.context)
-//        ball1.posX = 100f
-//        ball1.posY = 100f
-//        ball1.paint.color = Color.RED
+        val drawablePaddle=resources.getDrawable(R.drawable.player_pad,null)
+        squashPad = SquashPad(this.context, 145f,100f, 0f, 0f,0f,Color.GREEN)
     }
+
 
     fun start() {
         running = true
@@ -81,7 +82,6 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     fun update() {
         ball1.update()
-
         // Räknar bara när boll rör långsidan just nu
         if (ball1.posX >= width - ball1.size) {
             updateScore()
@@ -93,7 +93,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         val vX =
             event?.x.toString() //ett satt att hantera att en vill ha null och en nonnull versioner av datatyperna
         val vY = event?.y.toString()
-
+        squashPad.posY=event!!.y
         return true
         // return super.onTouchEvent(event)
     }
@@ -130,6 +130,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
             ball1.checkBounds(bounds)
         }
     }
+
     fun drawGameBounds(holder: SurfaceHolder) {
         val canvas: Canvas? = holder.lockCanvas()
         canvas?.drawColor(Color.BLACK)
@@ -142,6 +143,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         canvas?.drawText("Score: $score", canvas.width.toFloat() - 400, 0f + 100, textPaint)
 
         ball1.draw(canvas)
+        squashPad.draw(canvas)
         holder.unlockCanvasAndPost(canvas)
     }
 
@@ -153,6 +155,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         path.lineTo(0f, height.toFloat())
         return path
     }
+
     private fun updateScore(): Int {
         score++
         return score
