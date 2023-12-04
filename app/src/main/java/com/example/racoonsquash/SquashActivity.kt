@@ -21,14 +21,9 @@ class SquashActivity : AppCompatActivity() {
         val container = binding.root
         container.addView(gameView)
 
-
-//        fun setup() {
-//
-//            squashPad   = SquashPad(this,0f,0f,25f,0f,0f, Color.GREEN)
-//
-//        }
-
-
-        }
     }
+
+
+}
+
 

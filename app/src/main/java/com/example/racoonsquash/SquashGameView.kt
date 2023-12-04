@@ -28,13 +28,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     private var score: Int = 0;
 
 
-
     //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
     // Dessa blir gränser för spel-plan
     // Verkar kunna använda PathMeasure-klassen för att detektera intersections/collisions
-    private var gameBoundaryPath = Path()
+    private var gameBoundaryPath: Path? = null
 
-   // var bounds = Rect() //for att kunna studsa m vaggarna
+    var bounds = Rect() //for att kunna studsa m vaggarna
     var mHolder: SurfaceHolder? = holder
 
     init {
@@ -57,17 +56,22 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         }
         setup()
     }
+
     private fun setup() {
-        ball1 = Ball(this.context, 100f, 100f, 30f, 7f, 7f, Color.RED)
-        val drawablePaddle=resources.getDrawable(R.drawable.player_pad,null)
-        squashPad = SquashPad(this.context, 145f,100f, 100f, 0f,0f,Color.GREEN)
+        ball1 = Ball(this.context, 100f, 100f, 30f, 25f, 7f, Color.RED)
+        val drawablePaddle = resources.getDrawable(R.drawable.player_pad, null)
+        squashPad = SquashPad(
+            this.context, 50f, 400f, 6f, 0f, 0f, 0,
+            4f, 75f
+        )
     }
 
 
     fun start() {
         running = true
         thread =
-            Thread(this) //en trad har en konstruktor som tar in en runnable, vilket sker i denna klass se rad 10
+            Thread(this) //en trad har en konstruktor som tar in en runnable,
+        // vilket sker i denna klass se rad 10
         thread?.start()
     }
 
@@ -82,42 +86,67 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
     fun update() {
         ball1.update()
-        drawGameBounds(holder)
+
+        ballIntersects(ball1, squashPad)
         // Räknar bara när boll rör långsidan just nu
         if (ball1.posX >= width - ball1.size) {
             updateScore()
         }
-
     }
 
     //med denna kod kan jag rora pa boll2 som star stilla annars
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val vX =
-            event?.x.toString() //ett satt att hantera att en vill ha null och en nonnull versioner av datatyperna
+            event?.x.toString() //ett sätt att hantera att en vill ha null och en nonnull
+        // versioner av datatyperna
         val vY = event?.y.toString()
-        squashPad.posY=event!!.y
+        squashPad.posY = event!!.y
         return true
         // return super.onTouchEvent(event)
     }
 
-//    fun draw() {
-//        canvas = holder!!.lockCanvas()
-//        canvas.drawColor(Color.BLUE)
-//
-//
-//        holder!!.unlockCanvasAndPost(canvas)
-//    }
+    //onBallCollision inverterar riktningen på bollen när den träffar squashPad
+    fun onBallCollision(ball1: Ball, squashPad: SquashPad) {
+        ball1.speedY *= -1
+        ball1.speedX *= -1
+    }
+
+    // här tar vi in storlek från ball och squashPad och kontrollerar när en kollision
+// sker och kallar onBallCollision
+    fun ballIntersects(ball1: Ball, squashPad: SquashPad) {
+        val padLeft = squashPad.posX - squashPad.width
+        val padRight = squashPad.posX + squashPad.width
+        val padTop = squashPad.posY - squashPad.height
+        val padBottom = squashPad.posY + squashPad.height
+
+        val ballLeft = ball1.posX - ball1.size
+        val ballRight = ball1.posX + ball1.size
+        val ballTop = ball1.posY - ball1.size
+        val ballBottom = ball1.posY + ball1.size
+
+        if (ballRight >= padLeft && ballLeft <= padRight && ballBottom >= padTop && ballTop <=
+            padBottom
+        ) {
+
+            onBallCollision(ball1, squashPad)
+        }
+
+    }
+    /*    fun draw() {
+            canvas = holder!!.lockCanvas()
+            canvas.drawColor(Color.BLUE)
+
+
+            holder!!.unlockCanvasAndPost(canvas)
+        }*/
 
     //dessa startar och stoppar min thread:
     override fun surfaceCreated(holder: SurfaceHolder) {
-
-
+        // start()
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-
-        gameBoundaryPath = createBoundaryPath()
-        //bounds = Rect(0, 0, width, height)
+        bounds = Rect(0, 0, width, height)
         start()
     }
 
@@ -125,17 +154,16 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         stop()
     }
 
-    //run/metoden ar en metod som vi fick fran interface Runnable och ar kopplat till dess Thread.Run anropas nar vi kor Thread.start()
+    //run/metoden ar en metod som vi fick fran interface Runnable och ar kopplat till dess Thread.
+    // Run anropas nar vi kor Thread.start()
     //den kor en while loop med var running variable pch anropar update och draw:
     override fun run() {
         while (running) {
             update()
-            if(ball1.checkBounds(ball1.posX, ball1.posY, ball1.size, gameBoundaryPath)) {
-                println("HEJ")
-            }
-
+            drawGameBounds(holder)
+            gameBoundaryPath = createBoundaryPath(width, height)
+            ball1.checkBounds(bounds)
         }
-
     }
 
     fun drawGameBounds(holder: SurfaceHolder) {
@@ -154,7 +182,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         holder.unlockCanvasAndPost(canvas)
     }
 
-    private fun createBoundaryPath(): Path {
+    private fun createBoundaryPath(width: Int, height: Int): Path {
         val path = Path()
         path.moveTo(0f, 0f)
         path.lineTo(width.toFloat(), 0f)
