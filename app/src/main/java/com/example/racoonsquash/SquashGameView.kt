@@ -11,9 +11,6 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.icu.text.Transliterator
 import android.view.MotionEvent
-import kotlin.math.abs
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     private var thread: Thread? = null
@@ -58,11 +55,11 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     }
 
     private fun setup() {
-        ball1 = Ball(this.context, 100f, 100f, 30f, 25f, 7f, Color.RED)
+        ball1 = Ball(this.context, 100f, 100f, 30f, 25f, 7f, Color.RED, 25f)
         val drawablePaddle = resources.getDrawable(R.drawable.player_pad, null)
         squashPad = SquashPad(
             this.context, 50f, 400f, 6f, 0f, 0f, 0,
-            4f, 75f
+            4f, 75f, 0f
         )
     }
 
@@ -109,6 +106,13 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     fun onBallCollision(ball1: Ball, squashPad: SquashPad) {
         ball1.speedY *= -1
         ball1.speedX *= -1
+        val relativeIntersectY = squashPad.posY - ball1.posY
+        val normalizedIntersectY = (relativeIntersectY / (squashPad.height / 2)).coerceIn(-1f, 1f)
+        val bounceAngle =
+            normalizedIntersectY * Math.PI / 7
+
+        ball1.speedX = (ball1.speed * Math.cos(bounceAngle)).toFloat()
+        ball1.speedY = (-ball1.speed * Math.sin(bounceAngle)).toFloat()
     }
 
     // här tar vi in storlek från ball och squashPad och kontrollerar när en kollision
@@ -118,7 +122,6 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         val padRight = squashPad.posX + squashPad.width
         val padTop = squashPad.posY - squashPad.height
         val padBottom = squashPad.posY + squashPad.height
-
         val ballLeft = ball1.posX - ball1.size
         val ballRight = ball1.posX + ball1.size
         val ballTop = ball1.posY - ball1.size
