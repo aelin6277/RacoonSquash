@@ -7,6 +7,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PathMeasure
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.icu.text.Transliterator
@@ -21,13 +22,12 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     lateinit var posX: Transliterator.Position
     lateinit var posY: Transliterator.Position
     private var lineColor: Paint
-    private var textPaint: Paint
+    private var touchColor: Paint
+    private var scorePaint: Paint
+    private var textGameOverPaint: Paint
     private var score: Int = 0;
 
-
     //Path-klass ritar ett "spår" från en punkt moveTo() till nästa punkt lineTo()
-    // Dessa blir gränser för spel-plan
-    // Verkar kunna använda PathMeasure-klassen för att detektera intersections/collisions
     private var gameBoundaryPath: Path? = null
 
     var bounds = Rect() //for att kunna studsa m vaggarna
@@ -38,9 +38,15 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
             mHolder?.addCallback(this)
         }
 
-        // Score-text-attribut
-        textPaint = Paint().apply {
+        // Score-text-färg-attribut
+        scorePaint = Paint().apply {
             color = Color.GREEN
+            alpha = 200
+            textSize = 60.0F
+            typeface = Typeface.create("serif-monospace", Typeface.BOLD)
+        }
+        textGameOverPaint = Paint().apply {
+            color = Color.RED
             alpha = 200
             textSize = 60.0F
             typeface = Typeface.create("serif-monospace", Typeface.BOLD)
@@ -51,18 +57,24 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
             style = Paint.Style.STROKE
             strokeWidth = 10f
         }
+        touchColor = Paint().apply {
+            color = Color.RED
+            style = Paint.Style.STROKE
+            strokeWidth = 50f
+        }
         setup()
     }
 
     private fun setup() {
+ Joakim_B
         ball1 = Ball(this.context, 100f, 100f, 30f, 25f, 7f, Color.RED, 25f)
+ master
         val drawablePaddle = resources.getDrawable(R.drawable.player_pad, null)
         squashPad = SquashPad(
             this.context, 50f, 400f, 6f, 0f, 0f, 0,
             4f, 75f, 0f
         )
     }
-
 
     fun start() {
         running = true
@@ -82,12 +94,13 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     }
 
     fun update() {
-        ball1.update()
-
         ballIntersects(ball1, squashPad)
+        ball1.update()
         // Räknar bara när boll rör långsidan just nu
-        if (ball1.posX >= width - ball1.size) {
+        if (ball1.posX > width - ball1.size) {
             updateScore()
+        } else if (ball1.posX < 0) {
+            score = 0
         }
     }
 
@@ -130,10 +143,8 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         if (ballRight >= padLeft && ballLeft <= padRight && ballBottom >= padTop && ballTop <=
             padBottom
         ) {
-
             onBallCollision(ball1, squashPad)
         }
-
     }
     /*    fun draw() {
             canvas = holder!!.lockCanvas()
@@ -149,6 +160,7 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        gameBoundaryPath = createBoundaryPath(width, height)
         bounds = Rect(0, 0, width, height)
         start()
     }
@@ -164,7 +176,6 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
         while (running) {
             update()
             drawGameBounds(holder)
-            gameBoundaryPath = createBoundaryPath(width, height)
             ball1.checkBounds(bounds)
         }
     }
@@ -175,16 +186,34 @@ class SquashGameView(context: Context) : SurfaceView(context), SurfaceHolder.Cal
 
         gameBoundaryPath?.let {
             canvas?.drawPath(it, lineColor)
-        }
 
-        // Placera text
-        canvas?.drawText("Score: $score", canvas.width.toFloat() - 400, 0f + 100, textPaint)
+            if (ball1.posX < 0 - ball1.size) {
+                canvas?.drawPath(it, touchColor)
+                canvas?.drawText(
+                    "Score: $score",
+                    canvas.width.toFloat() - 400,
+                    0f + 100,
+                    textGameOverPaint
+                )
+                canvas?.drawText(
+                    "GAME OVER",
+                    canvas.width.toFloat() / 3,
+                    canvas.height.toFloat() / 2,
+                    textGameOverPaint
+                )
+
+            } else {
+                // Placera text
+                canvas?.drawText("Score: $score", canvas.width.toFloat() - 400, 0f + 100, scorePaint)
+            }
+        }
 
         ball1.draw(canvas)
         squashPad.draw(canvas)
         holder.unlockCanvasAndPost(canvas)
     }
 
+    // För syns skull gör en Path med färgade linjer för gränserna.
     private fun createBoundaryPath(width: Int, height: Int): Path {
         val path = Path()
         path.moveTo(0f, 0f)
